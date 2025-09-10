@@ -1,0 +1,6 @@
+requests
+tqdm
+pymongo
+neo4j
+sentence-transformers
+torch
