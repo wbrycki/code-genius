@@ -18,19 +18,5 @@ services:
     environment:
       - NEO4J_AUTH=neo4j/supersecret
 
-  indexer:
-    build: .
-    container_name: code-indexer
-    depends_on:
-      - mongo
-      - neo4j
-    volumes:
-      - ./repo_to_index:/app/repo_to_index  # mount repo folder
-    environment:
-      - MONGO_URI=mongodb://mongo:27017
-      - NEO4J_URI=bolt://neo4j:7687
-      - NEO4J_USER=neo4j
-      - NEO4J_PASSWORD=supersecret
-
 volumes:
   mongo_data:

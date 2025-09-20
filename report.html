@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Search Report</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, 'Fira Sans', 'Droid Sans', 'Helvetica Neue', Arial, sans-serif; margin: 16px; }
+    .result { border: 1px solid #e2e2e2; border-radius: 8px; padding: 12px; margin-bottom: 16px; }
+    .meta { font-size: 12px; color: #666; margin-bottom: 8px; }
+    pre { background: #0b1021; color: #f2f2f2; padding: 12px; border-radius: 6px; overflow: auto; }
+    code { white-space: pre; }
+    .title { font-weight: 600; font-size: 16px; margin-bottom: 6px; }
+    .score { color: #555; }
+    .section-label { font-weight: 600; margin: 10px 0 6px; }
+  </style>
+  <script type="module" src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs"></script>
+  <script>mermaid.initialize({ startOnLoad: true, securityLevel: 'loose' });</script>
+</head>
+<body>
+  <h1>Semantic Search Report</h1>
+  <div class="meta">Query: <b>job submission</b></div>
+
+<div class="result">
+  <div class="title">class · org.apache.flink.client.cli.for</div>
+  <div class="meta">File: /Users/wbr/Projects/flink/flink-clients/src/main/java/org/apache/flink/client/cli/CommandLineOptions.java · Score: 0.1488</div>
+  <div class="section-label">Code</div>
+  <pre><code>package org.apache.flink.client.cli;
+
+import org.apache.commons.cli.CommandLine;
+
+import static org.apache.flink.client.cli.CliFrontendParser.HELP_OPTION;
+
+/**
+ * Base class for all options parsed from the command line. Contains options for printing help and
+ * the JobManager address.
+ */
+public abstract class CommandLineOptions {
+
+    private final boolean printHelp;
+
+    protected CommandLineOptions(CommandLine line) {
+        this.printHelp = line.hasOption(HELP_OPTION.getOpt());
+    }
+
+    public boolean isPrintHelp() {
+        return printHelp;
+    }
+}</code></pre>
+  <div class="section-label">Graph</div>
+  <pre class="mermaid">
+graph LR
+  target["org.apache.flink.client.cli.for"]
+</pre>
+</div>
+
+<div class="result">
+  <div class="title">class · org.apache.flink.client.cli.CommandLineOptions</div>
+  <div class="meta">File: /Users/wbr/Projects/flink/flink-clients/src/main/java/org/apache/flink/client/cli/CommandLineOptions.java · Score: 0.1488</div>
+  <div class="section-label">Code</div>
+  <pre><code>package org.apache.flink.client.cli;
+
+import org.apache.commons.cli.CommandLine;
+
+import static org.apache.flink.client.cli.CliFrontendParser.HELP_OPTION;
+
+/**
+ * Base class for all options parsed from the command line. Contains options for printing help and
+ * the JobManager address.
+ */
+public abstract class CommandLineOptions {
+
+    private final boolean printHelp;
+
+    protected CommandLineOptions(CommandLine line) {
+        this.printHelp = line.hasOption(HELP_OPTION.getOpt());
+    }
+
+    public boolean isPrintHelp() {
+        return printHelp;
+    }
+}</code></pre>
+  <div class="section-label">Graph</div>
+  <pre class="mermaid">
+graph LR
+  target["org.apache.flink.client.cli.CommandLineOptions"]
+</pre>
+</div>
+
+<div class="result">
+  <div class="title">method · org.apache.flink.client.cli.for.CommandLineOptions</div>
+  <div class="meta">File: /Users/wbr/Projects/flink/flink-clients/src/main/java/org/apache/flink/client/cli/CommandLineOptions.java · Score: 0.1488</div>
+  <div class="section-label">Code</div>
+  <pre><code>package org.apache.flink.client.cli;
+
+import org.apache.commons.cli.CommandLine;
+
+import static org.apache.flink.client.cli.CliFrontendParser.HELP_OPTION;
+
+/**
+ * Base class for all options parsed from the command line. Contains options for printing help and
+ * the JobManager address.
+ */
+public abstract class CommandLineOptions {
+
+    private final boolean printHelp;
+
+    protected CommandLineOptions(CommandLine line) {
+        this.printHelp = line.hasOption(HELP_OPTION.getOpt());
+    }
+
+    public boolean isPrintHelp() {
+        return printHelp;
+    }
+}</code></pre>
+  <div class="section-label">Graph</div>
+  <pre class="mermaid">
+graph LR
+  target["org.apache.flink.client.cli.for.CommandLineOptions"]
+  caller_933484421683263851(["org.apache.flink.client.cli.for.isPrintHelp"]) --&gt; target
+  target --&gt; callee_933484421683263851(["org.apache.flink.client.cli.for.isPrintHelp"]) 
+</pre>
+</div>
+
+<div class="result">
+  <div class="title">method · org.apache.flink.client.cli.for.isPrintHelp</div>
+  <div class="meta">File: /Users/wbr/Projects/flink/flink-clients/src/main/java/org/apache/flink/client/cli/CommandLineOptions.java · Score: 0.1488</div>
+  <div class="section-label">Code</div>
+  <pre><code>package org.apache.flink.client.cli;
+
+import org.apache.commons.cli.CommandLine;
+
+import static org.apache.flink.client.cli.CliFrontendParser.HELP_OPTION;
+
+/**
+ * Base class for all options parsed from the command line. Contains options for printing help and
+ * the JobManager address.
+ */
+public abstract class CommandLineOptions {
+
+    private final boolean printHelp;
+
+    protected CommandLineOptions(CommandLine line) {
+        this.printHelp = line.hasOption(HELP_OPTION.getOpt());
+    }
+
+    public boolean isPrintHelp() {
+        return printHelp;
+    }
+}</code></pre>
+  <div class="section-label">Graph</div>
+  <pre class="mermaid">
+graph LR
+  target["org.apache.flink.client.cli.for.isPrintHelp"]
+  caller_5387661832177568066(["org.apache.flink.client.cli.for.CommandLineOptions"]) --&gt; target
+  target --&gt; callee_5387661832177568066(["org.apache.flink.client.cli.for.CommandLineOptions"]) 
+</pre>
+</div>
+
+<div class="result">
+  <div class="title">class · org.apache.flink.client.cli.CliFrontendParser</div>
+  <div class="meta">File: /Users/wbr/Projects/flink/flink-clients/src/main/java/org/apache/flink/client/cli/CliFrontendParser.java · Score: 0.1454</div>
+  <div class="section-label">Code</div>
+  <pre><code>package org.apache.flink.client.cli;
+
+import org.apache.flink.configuration.CheckpointingOptions;
+import org.apache.flink.configuration.ConfigurationUtils;
+import org.apache.flink.configuration.StateRecoveryOptions;
+import org.apache.flink.core.execution.RecoveryClaimMode;
+import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+
+import javax.annotation.Nullable;
+
+import java.util.Collection;
+
+/**
+ * A simple command line parser (based on Apache Commons CLI) that extracts command line options.
+ */
+public class CliFrontendParser {
+
+    static final Option HELP_OPTION =
+            new Option(
+                    "h",
+                    "help",
+                    false,
+                    "Show the help message for the CLI Frontend or the action.");
+
+    static final Option JAR_OPTION = new Option("j", "jarfile", true, "Flink program JAR file.");
+
+    static final Option CLASS_OPTION =
+            new Option(
+                    "c",
+                    "class",
+                    true,
+                    "Class with the program entry point (\"main()\" method). Only needed if the "
+                            + "JAR file does not specify the class in its manifest.");
+
+    static final Option CLASSPATH_OPTION =
+            new Option(
+                    "C",
+                    "classpath",
+                    true,
+                    "Adds a URL to each user code "
+                            + "classloader  on all nodes in the cluster. The paths must specify a protocol (e.g. file://) and be "
+                            + "accessible on all nodes (e.g. by means of a NFS share). You can use this option multiple "
+                            + "times for specifying more than one URL. The protocol must be supported by the "
+                            + "{@link java.net.URLClassLoader}.");
+
+    public static final Option PARALLELISM_OPTION =
+            new Option(
+                    "p",
+                    "parallelism",
+                    true,
+                    "The parallelism with which to run the program. Optional flag to override the default value "
+                            + "specified in the configuration.");
+    public static final Option DETACHED_OPTION =</code></pre>
+  <div class="section-label">Graph</div>
+  <pre class="mermaid">
+graph LR
+  target["org.apache.flink.client.cli.CliFrontendParser"]
+</pre>
+</div>
+
+<div class="result">
+  <div class="title">class · org.apache.flink.client.cli.in</div>
+  <div class="meta">File: /Users/wbr/Projects/flink/flink-clients/src/main/java/org/apache/flink/client/cli/CliFrontendParser.java · Score: 0.1454</div>
+  <div class="section-label">Code</div>
+  <pre><code>package org.apache.flink.client.cli;
+
+import org.apache.flink.configuration.CheckpointingOptions;
+import org.apache.flink.configuration.ConfigurationUtils;
+import org.apache.flink.configuration.StateRecoveryOptions;
+import org.apache.flink.core.execution.RecoveryClaimMode;
+import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+
+import javax.annotation.Nullable;
+
+import java.util.Collection;
+
+/**
+ * A simple command line parser (based on Apache Commons CLI) that extracts command line options.
+ */
+public class CliFrontendParser {
+
+    static final Option HELP_OPTION =
+            new Option(
+                    "h",
+                    "help",
+                    false,
+                    "Show the help message for the CLI Frontend or the action.");
+
+    static final Option JAR_OPTION = new Option("j", "jarfile", true, "Flink program JAR file.");
+
+    static final Option CLASS_OPTION =
+            new Option(
+                    "c",
+                    "class",
+                    true,
+                    "Class with the program entry point (\"main()\" method). Only needed if the "
+                            + "JAR file does not specify the class in its manifest.");
+
+    static final Option CLASSPATH_OPTION =
+            new Option(
+                    "C",
+                    "classpath",
+                    true,
+                    "Adds a URL to each user code "
+                            + "classloader  on all nodes in the cluster. The paths must specify a protocol (e.g. file://) and be "
+                            + "accessible on all nodes (e.g. by means of a NFS share). You can use this option multiple "
+                            + "times for specifying more than one URL. The protocol must be supported by the "
+                            + "{@link java.net.URLClassLoader}.");
+
+    public static final Option PARALLELISM_OPTION =
+            new Option(
+                    "p",
+                    "parallelism",
+                    true,
+                    "The parallelism with which to run the program. Optional flag to override the default value "
+                            + "specified in the configuration.");
+    public static final Option DETACHED_OPTION =</code></pre>
+  <div class="section-label">Graph</div>
+  <pre class="mermaid">
+graph LR
+  target["org.apache.flink.client.cli.in"]
+</pre>
+</div>
+
+<div class="result">
+  <div class="title">method · org.apache.flink.client.cli.CliFrontendParser.buildGeneralOptions</div>
+  <div class="meta">File: /Users/wbr/Projects/flink/flink-clients/src/main/java/org/apache/flink/client/cli/CliFrontendParser.java · Score: 0.1454</div>
+  <div class="section-label">Code</div>
+  <pre><code>package org.apache.flink.client.cli;
+
+import org.apache.flink.configuration.CheckpointingOptions;
+import org.apache.flink.configuration.ConfigurationUtils;
+import org.apache.flink.configuration.StateRecoveryOptions;
+import org.apache.flink.core.execution.RecoveryClaimMode;
+import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+
+import javax.annotation.Nullable;
+
+import java.util.Collection;
+
+/**
+ * A simple command line parser (based on Apache Commons CLI) that extracts command line options.
+ */
+public class CliFrontendParser {
+
+    static final Option HELP_OPTION =
+            new Option(
+                    "h",
+                    "help",
+                    false,
+                    "Show the help message for the CLI Frontend or the action.");
+
+    static final Option JAR_OPTION = new Option("j", "jarfile", true, "Flink program JAR file.");
+
+    static final Option CLASS_OPTION =
+            new Option(
+                    "c",
+                    "class",
+                    true,
+                    "Class with the program entry point (\"main()\" method). Only needed if the "
+                            + "JAR file does not specify the class in its manifest.");
+
+    static final Option CLASSPATH_OPTION =
+            new Option(
+                    "C",
+                    "classpath",
+                    true,
+                    "Adds a URL to each user code "
+                            + "classloader  on all nodes in the cluster. The paths must specify a protocol (e.g. file://) and be "
+                            + "accessible on all nodes (e.g. by means of a NFS share). You can use this option multiple "
+                            + "times for specifying more than one URL. The protocol must be supported by the "
+                            + "{@link java.net.URLClassLoader}.");
+
+    public static final Option PARALLELISM_OPTION =
+            new Option(
+                    "p",
+                    "parallelism",
+                    true,
+                    "The parallelism with which to run the program. Optional flag to override the default value "
+                            + "specified in the configuration.");
+    public static final Option DETACHED_OPTION =</code></pre>
+  <div class="section-label">Graph</div>
+  <pre class="mermaid">
+graph LR
+  target["org.apache.flink.client.cli.CliFrontendParser.buildGeneralOptions"]
+  caller_6298332661080256893(["org.apache.flink.client.cli.CliFrontendParser.mergeOptions"]) --&gt; target
+  caller_3947551477814557698(["org.apache.flink.client.cli.CliFrontendParser.createSavepointRestoreSettings"]) --&gt; target
+  caller_4259915392394866197(["org.apache.flink.client.cli.CliFrontendParser.printHelpForCheckpoint"]) --&gt; target
+  caller_1840984717392434395(["org.apache.flink.client.cli.CliFrontendParser.printHelpForSavepoint"]) --&gt; target
+  caller_6428453060757614692(["org.apache.flink.client.cli.CliFrontendParser.printHelpForCancel"]) --&gt; target
+  caller_1184757588719357456(["org.apache.flink.client.cli.CliFrontendParser.printHelpForStop"]) --&gt; target
+  caller_6161160505672435942(["org.apache.flink.client.cli.CliFrontendParser.printHelpForList"]) --&gt; target
+  caller_2700637462718633425(["org.apache.flink.client.cli.CliFrontendParser.printHelpForInfo"]) --&gt; target
+  caller_711627497652313516(["org.apache.flink.client.cli.CliFrontendParser.printHelpForRun"]) --&gt; target
+  caller_3491865842679669951(["org.apache.flink.client.cli.CliFrontendParser.printHelp"]) --&gt; target
+  caller_6172895020967933540(["org.apache.flink.client.cli.CliFrontendParser.getCheckpointOptionsWithoutDeprecatedOptions"]) --&gt; target
+  caller_3906838435750795424(["org.apache.flink.client.cli.CliFrontendParser.getSavepointOptionsWithoutDeprecatedOptions"]) --&gt; target
+  target --&gt; callee_6298332661080256893(["org.apache.flink.client.cli.CliFrontendParser.mergeOptions"]) 
+  target --&gt; callee_3947551477814557698(["org.apache.flink.client.cli.CliFrontendParser.createSavepointRestoreSettings"]) 
+  target --&gt; callee_4259915392394866197(["org.apache.flink.client.cli.CliFrontendParser.printHelpForCheckpoint"]) 
+  target --&gt; callee_1840984717392434395(["org.apache.flink.client.cli.CliFrontendParser.printHelpForSavepoint"]) 
+  target --&gt; callee_6428453060757614692(["org.apache.flink.client.cli.CliFrontendParser.printHelpForCancel"]) 
+  target --&gt; callee_1184757588719357456(["org.apache.flink.client.cli.CliFrontendParser.printHelpForStop"]) 
+  target --&gt; callee_6161160505672435942(["org.apache.flink.client.cli.CliFrontendParser.printHelpForList"]) 
+  target --&gt; callee_2700637462718633425(["org.apache.flink.client.cli.CliFrontendParser.printHelpForInfo"]) 
+  target --&gt; callee_711627497652313516(["org.apache.flink.client.cli.CliFrontendParser.printHelpForRun"]) 
+  target --&gt; callee_3491865842679669951(["org.apache.flink.client.cli.CliFrontendParser.printHelp"]) 
+  target --&gt; callee_6172895020967933540(["org.apache.flink.client.cli.CliFrontendParser.getCheckpointOptionsWithoutDeprecatedOptions"]) 
+  target --&gt; callee_3906838435750795424(["org.apache.flink.client.cli.CliFrontendParser.getSavepointOptionsWithoutDeprecatedOptions"]) 
+</pre>
+</div>
+
+<div class="result">
+  <div class="title">method · org.apache.flink.client.cli.CliFrontendParser.getProgramSpecificOptions</div>
+  <div class="meta">File: /Users/wbr/Projects/flink/flink-clients/src/main/java/org/apache/flink/client/cli/CliFrontendParser.java · Score: 0.1454</div>
+  <div class="section-label">Code</div>
+  <pre><code>package org.apache.flink.client.cli;
+
+import org.apache.flink.configuration.CheckpointingOptions;
+import org.apache.flink.configuration.ConfigurationUtils;
+import org.apache.flink.configuration.StateRecoveryOptions;
+import org.apache.flink.core.execution.RecoveryClaimMode;
+import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+
+import javax.annotation.Nullable;
+
+import java.util.Collection;
+
+/**
+ * A simple command line parser (based on Apache Commons CLI) that extracts command line options.
+ */
+public class CliFrontendParser {
+
+    static final Option HELP_OPTION =
+            new Option(
+                    "h",
+                    "help",
+                    false,
+                    "Show the help message for the CLI Frontend or the action.");
+
+    static final Option JAR_OPTION = new Option("j", "jarfile", true, "Flink program JAR file.");
+
+    static final Option CLASS_OPTION =
+            new Option(
+                    "c",
+                    "class",
+                    true,
+                    "Class with the program entry point (\"main()\" method). Only needed if the "
+                            + "JAR file does not specify the class in its manifest.");
+
+    static final Option CLASSPATH_OPTION =
+            new Option(
+                    "C",
+                    "classpath",
+                    true,
+                    "Adds a URL to each user code "
+                            + "classloader  on all nodes in the cluster. The paths must specify a protocol (e.g. file://) and be "
+                            + "accessible on all nodes (e.g. by means of a NFS share). You can use this option multiple "
+                            + "times for specifying more than one URL. The protocol must be supported by the "
+                            + "{@link java.net.URLClassLoader}.");
+
+    public static final Option PARALLELISM_OPTION =
+            new Option(
+                    "p",
+                    "parallelism",
+                    true,
+                    "The parallelism with which to run the program. Optional flag to override the default value "
+                            + "specified in the configuration.");
+    public static final Option DETACHED_OPTION =</code></pre>
+  <div class="section-label">Graph</div>
+  <pre class="mermaid">
+graph LR
+  target["org.apache.flink.client.cli.CliFrontendParser.getProgramSpecificOptions"]
+  caller_6298332661080256893(["org.apache.flink.client.cli.CliFrontendParser.mergeOptions"]) --&gt; target
+  caller_3947551477814557698(["org.apache.flink.client.cli.CliFrontendParser.createSavepointRestoreSettings"]) --&gt; target
+  caller_4259915392394866197(["org.apache.flink.client.cli.CliFrontendParser.printHelpForCheckpoint"]) --&gt; target
+  caller_1840984717392434395(["org.apache.flink.client.cli.CliFrontendParser.printHelpForSavepoint"]) --&gt; target
+  caller_6428453060757614692(["org.apache.flink.client.cli.CliFrontendParser.printHelpForCancel"]) --&gt; target
+  caller_1184757588719357456(["org.apache.flink.client.cli.CliFrontendParser.printHelpForStop"]) --&gt; target
+  caller_6161160505672435942(["org.apache.flink.client.cli.CliFrontendParser.printHelpForList"]) --&gt; target
+  caller_2700637462718633425(["org.apache.flink.client.cli.CliFrontendParser.printHelpForInfo"]) --&gt; target
+  caller_711627497652313516(["org.apache.flink.client.cli.CliFrontendParser.printHelpForRun"]) --&gt; target
+  caller_3491865842679669951(["org.apache.flink.client.cli.CliFrontendParser.printHelp"]) --&gt; target
+  caller_6172895020967933540(["org.apache.flink.client.cli.CliFrontendParser.getCheckpointOptionsWithoutDeprecatedOptions"]) --&gt; target
+  caller_3906838435750795424(["org.apache.flink.client.cli.CliFrontendParser.getSavepointOptionsWithoutDeprecatedOptions"]) --&gt; target
+  target --&gt; callee_6298332661080256893(["org.apache.flink.client.cli.CliFrontendParser.mergeOptions"]) 
+  target --&gt; callee_3947551477814557698(["org.apache.flink.client.cli.CliFrontendParser.createSavepointRestoreSettings"]) 
+  target --&gt; callee_4259915392394866197(["org.apache.flink.client.cli.CliFrontendParser.printHelpForCheckpoint"]) 
+  target --&gt; callee_1840984717392434395(["org.apache.flink.client.cli.CliFrontendParser.printHelpForSavepoint"]) 
+  target --&gt; callee_6428453060757614692(["org.apache.flink.client.cli.CliFrontendParser.printHelpForCancel"]) 
+  target --&gt; callee_1184757588719357456(["org.apache.flink.client.cli.CliFrontendParser.printHelpForStop"]) 
+  target --&gt; callee_6161160505672435942(["org.apache.flink.client.cli.CliFrontendParser.printHelpForList"]) 
+  target --&gt; callee_2700637462718633425(["org.apache.flink.client.cli.CliFrontendParser.printHelpForInfo"]) 
+  target --&gt; callee_711627497652313516(["org.apache.flink.client.cli.CliFrontendParser.printHelpForRun"]) 
+  target --&gt; callee_3491865842679669951(["org.apache.flink.client.cli.CliFrontendParser.printHelp"]) 
+  target --&gt; callee_6172895020967933540(["org.apache.flink.client.cli.CliFrontendParser.getCheckpointOptionsWithoutDeprecatedOptions"]) 
+  target --&gt; callee_3906838435750795424(["org.apache.flink.client.cli.CliFrontendParser.getSavepointOptionsWithoutDeprecatedOptions"]) 
+</pre>
+</div>
+
+<div class="result">
+  <div class="title">method · org.apache.flink.client.cli.CliFrontendParser.getProgramSpecificOptionsWithoutDeprecatedOptions</div>
+  <div class="meta">File: /Users/wbr/Projects/flink/flink-clients/src/main/java/org/apache/flink/client/cli/CliFrontendParser.java · Score: 0.1454</div>
+  <div class="section-label">Code</div>
+  <pre><code>package org.apache.flink.client.cli;
+
+import org.apache.flink.configuration.CheckpointingOptions;
+import org.apache.flink.configuration.ConfigurationUtils;
+import org.apache.flink.configuration.StateRecoveryOptions;
+import org.apache.flink.core.execution.RecoveryClaimMode;
+import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+
+import javax.annotation.Nullable;
+
+import java.util.Collection;
+
+/**
+ * A simple command line parser (based on Apache Commons CLI) that extracts command line options.
+ */
+public class CliFrontendParser {
+
+    static final Option HELP_OPTION =
+            new Option(
+                    "h",
+                    "help",
+                    false,
+                    "Show the help message for the CLI Frontend or the action.");
+
+    static final Option JAR_OPTION = new Option("j", "jarfile", true, "Flink program JAR file.");
+
+    static final Option CLASS_OPTION =
+            new Option(
+                    "c",
+                    "class",
+                    true,
+                    "Class with the program entry point (\"main()\" method). Only needed if the "
+                            + "JAR file does not specify the class in its manifest.");
+
+    static final Option CLASSPATH_OPTION =
+            new Option(
+                    "C",
+                    "classpath",
+                    true,
+                    "Adds a URL to each user code "
+                            + "classloader  on all nodes in the cluster. The paths must specify a protocol (e.g. file://) and be "
+                            + "accessible on all nodes (e.g. by means of a NFS share). You can use this option multiple "
+                            + "times for specifying more than one URL. The protocol must be supported by the "
+                            + "{@link java.net.URLClassLoader}.");
+
+    public static final Option PARALLELISM_OPTION =
+            new Option(
+                    "p",
+                    "parallelism",
+                    true,
+                    "The parallelism with which to run the program. Optional flag to override the default value "
+                            + "specified in the configuration.");
+    public static final Option DETACHED_OPTION =</code></pre>
+  <div class="section-label">Graph</div>
+  <pre class="mermaid">
+graph LR
+  target["org.apache.flink.client.cli.CliFrontendParser.getProgramSpecificOptionsWithoutDeprecatedOptions"]
+  caller_6298332661080256893(["org.apache.flink.client.cli.CliFrontendParser.mergeOptions"]) --&gt; target
+  caller_3947551477814557698(["org.apache.flink.client.cli.CliFrontendParser.createSavepointRestoreSettings"]) --&gt; target
+  caller_4259915392394866197(["org.apache.flink.client.cli.CliFrontendParser.printHelpForCheckpoint"]) --&gt; target
+  caller_1840984717392434395(["org.apache.flink.client.cli.CliFrontendParser.printHelpForSavepoint"]) --&gt; target
+  caller_6428453060757614692(["org.apache.flink.client.cli.CliFrontendParser.printHelpForCancel"]) --&gt; target
+  caller_1184757588719357456(["org.apache.flink.client.cli.CliFrontendParser.printHelpForStop"]) --&gt; target
+  caller_6161160505672435942(["org.apache.flink.client.cli.CliFrontendParser.printHelpForList"]) --&gt; target
+  caller_2700637462718633425(["org.apache.flink.client.cli.CliFrontendParser.printHelpForInfo"]) --&gt; target
+  caller_711627497652313516(["org.apache.flink.client.cli.CliFrontendParser.printHelpForRun"]) --&gt; target
+  caller_3491865842679669951(["org.apache.flink.client.cli.CliFrontendParser.printHelp"]) --&gt; target
+  caller_6172895020967933540(["org.apache.flink.client.cli.CliFrontendParser.getCheckpointOptionsWithoutDeprecatedOptions"]) --&gt; target
+  caller_3906838435750795424(["org.apache.flink.client.cli.CliFrontendParser.getSavepointOptionsWithoutDeprecatedOptions"]) --&gt; target
+  target --&gt; callee_6298332661080256893(["org.apache.flink.client.cli.CliFrontendParser.mergeOptions"]) 
+  target --&gt; callee_3947551477814557698(["org.apache.flink.client.cli.CliFrontendParser.createSavepointRestoreSettings"]) 
+  target --&gt; callee_4259915392394866197(["org.apache.flink.client.cli.CliFrontendParser.printHelpForCheckpoint"]) 
+  target --&gt; callee_1840984717392434395(["org.apache.flink.client.cli.CliFrontendParser.printHelpForSavepoint"]) 
+  target --&gt; callee_6428453060757614692(["org.apache.flink.client.cli.CliFrontendParser.printHelpForCancel"]) 
+  target --&gt; callee_1184757588719357456(["org.apache.flink.client.cli.CliFrontendParser.printHelpForStop"]) 
+  target --&gt; callee_6161160505672435942(["org.apache.flink.client.cli.CliFrontendParser.printHelpForList"]) 
+  target --&gt; callee_2700637462718633425(["org.apache.flink.client.cli.CliFrontendParser.printHelpForInfo"]) 
+  target --&gt; callee_711627497652313516(["org.apache.flink.client.cli.CliFrontendParser.printHelpForRun"]) 
+  target --&gt; callee_3491865842679669951(["org.apache.flink.client.cli.CliFrontendParser.printHelp"]) 
+  target --&gt; callee_6172895020967933540(["org.apache.flink.client.cli.CliFrontendParser.getCheckpointOptionsWithoutDeprecatedOptions"]) 
+  target --&gt; callee_3906838435750795424(["org.apache.flink.client.cli.CliFrontendParser.getSavepointOptionsWithoutDeprecatedOptions"]) 
+</pre>
+</div>
+
+<div class="result">
+  <div class="title">method · org.apache.flink.client.cli.CliFrontendParser.getRunCommandOptions</div>
+  <div class="meta">File: /Users/wbr/Projects/flink/flink-clients/src/main/java/org/apache/flink/client/cli/CliFrontendParser.java · Score: 0.1454</div>
+  <div class="section-label">Code</div>
+  <pre><code>package org.apache.flink.client.cli;
+
+import org.apache.flink.configuration.CheckpointingOptions;
+import org.apache.flink.configuration.ConfigurationUtils;
+import org.apache.flink.configuration.StateRecoveryOptions;
+import org.apache.flink.core.execution.RecoveryClaimMode;
+import org.apache.flink.runtime.jobgraph.SavepointRestoreSettings;
+
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.HelpFormatter;
+import org.apache.commons.cli.Option;
+import org.apache.commons.cli.Options;
+import org.apache.commons.cli.ParseException;
+
+import javax.annotation.Nullable;
+
+import java.util.Collection;
+
+/**
+ * A simple command line parser (based on Apache Commons CLI) that extracts command line options.
+ */
+public class CliFrontendParser {
+
+    static final Option HELP_OPTION =
+            new Option(
+                    "h",
+                    "help",
+                    false,
+                    "Show the help message for the CLI Frontend or the action.");
+
+    static final Option JAR_OPTION = new Option("j", "jarfile", true, "Flink program JAR file.");
+
+    static final Option CLASS_OPTION =
+            new Option(
+                    "c",
+                    "class",
+                    true,
+                    "Class with the program entry point (\"main()\" method). Only needed if the "
+                            + "JAR file does not specify the class in its manifest.");
+
+    static final Option CLASSPATH_OPTION =
+            new Option(
+                    "C",
+                    "classpath",
+                    true,
+                    "Adds a URL to each user code "
+                            + "classloader  on all nodes in the cluster. The paths must specify a protocol (e.g. file://) and be "
+                            + "accessible on all nodes (e.g. by means of a NFS share). You can use this option multiple "
+                            + "times for specifying more than one URL. The protocol must be supported by the "
+                            + "{@link java.net.URLClassLoader}.");
+
+    public static final Option PARALLELISM_OPTION =
+            new Option(
+                    "p",
+                    "parallelism",
+                    true,
+                    "The parallelism with which to run the program. Optional flag to override the default value "
+                            + "specified in the configuration.");
+    public static final Option DETACHED_OPTION =</code></pre>
+  <div class="section-label">Graph</div>
+  <pre class="mermaid">
+graph LR
+  target["org.apache.flink.client.cli.CliFrontendParser.getRunCommandOptions"]
+  caller_6298332661080256893(["org.apache.flink.client.cli.CliFrontendParser.mergeOptions"]) --&gt; target
+  caller_3947551477814557698(["org.apache.flink.client.cli.CliFrontendParser.createSavepointRestoreSettings"]) --&gt; target
+  caller_4259915392394866197(["org.apache.flink.client.cli.CliFrontendParser.printHelpForCheckpoint"]) --&gt; target
+  caller_1840984717392434395(["org.apache.flink.client.cli.CliFrontendParser.printHelpForSavepoint"]) --&gt; target
+  caller_6428453060757614692(["org.apache.flink.client.cli.CliFrontendParser.printHelpForCancel"]) --&gt; target
+  caller_1184757588719357456(["org.apache.flink.client.cli.CliFrontendParser.printHelpForStop"]) --&gt; target
+  caller_6161160505672435942(["org.apache.flink.client.cli.CliFrontendParser.printHelpForList"]) --&gt; target
+  caller_2700637462718633425(["org.apache.flink.client.cli.CliFrontendParser.printHelpForInfo"]) --&gt; target
+  caller_711627497652313516(["org.apache.flink.client.cli.CliFrontendParser.printHelpForRun"]) --&gt; target
+  caller_3491865842679669951(["org.apache.flink.client.cli.CliFrontendParser.printHelp"]) --&gt; target
+  caller_6172895020967933540(["org.apache.flink.client.cli.CliFrontendParser.getCheckpointOptionsWithoutDeprecatedOptions"]) --&gt; target
+  caller_3906838435750795424(["org.apache.flink.client.cli.CliFrontendParser.getSavepointOptionsWithoutDeprecatedOptions"]) --&gt; target
+  target --&gt; callee_6298332661080256893(["org.apache.flink.client.cli.CliFrontendParser.mergeOptions"]) 
+  target --&gt; callee_3947551477814557698(["org.apache.flink.client.cli.CliFrontendParser.createSavepointRestoreSettings"]) 
+  target --&gt; callee_4259915392394866197(["org.apache.flink.client.cli.CliFrontendParser.printHelpForCheckpoint"]) 
+  target --&gt; callee_1840984717392434395(["org.apache.flink.client.cli.CliFrontendParser.printHelpForSavepoint"]) 
+  target --&gt; callee_6428453060757614692(["org.apache.flink.client.cli.CliFrontendParser.printHelpForCancel"]) 
+  target --&gt; callee_1184757588719357456(["org.apache.flink.client.cli.CliFrontendParser.printHelpForStop"]) 
+  target --&gt; callee_6161160505672435942(["org.apache.flink.client.cli.CliFrontendParser.printHelpForList"]) 
+  target --&gt; callee_2700637462718633425(["org.apache.flink.client.cli.CliFrontendParser.printHelpForInfo"]) 
+  target --&gt; callee_711627497652313516(["org.apache.flink.client.cli.CliFrontendParser.printHelpForRun"]) 
+  target --&gt; callee_3491865842679669951(["org.apache.flink.client.cli.CliFrontendParser.printHelp"]) 
+  target --&gt; callee_6172895020967933540(["org.apache.flink.client.cli.CliFrontendParser.getCheckpointOptionsWithoutDeprecatedOptions"]) 
+  target --&gt; callee_3906838435750795424(["org.apache.flink.client.cli.CliFrontendParser.getSavepointOptionsWithoutDeprecatedOptions"]) 
+</pre>
+</div>
+</body>
+</html>

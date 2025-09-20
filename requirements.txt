@@ -4,3 +4,4 @@ pymongo
 neo4j
 sentence-transformers
 torch
+numpy
