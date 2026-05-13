@@ -1,125 +1,208 @@
-import os
 import re
+from tree_sitter import Language, Parser
+import tree_sitter_java as tsjava
 
 JAVA_KEYWORDS = {
     "if", "for", "while", "switch", "catch", "return", "new", "throw",
-    "try", "else", "do", "synchronized", "super", "this", "eval",
-    "String", "INT", "ROW", "FIELD", "FLOAT", "BOOLEAN", "explicit",
-    "hashCode", "equals", "toString", "clone", "finalize", "wait",
-    "notify", "notifyAll"
+    "try", "else", "do", "synchronized", "super", "this",
 }
 
+# -----------------------------
+# TREE-SITTER SETUP
+# -----------------------------
+
+JAVA_LANGUAGE = Language(tsjava.language())
+parser = Parser(JAVA_LANGUAGE)
+
+
+# -----------------------------
+# HELPERS
+# -----------------------------
+
 def _strip_license_headers(code: str) -> str:
-    """Remove common license headers at the top of files (e.g., Apache ASF).
-    We conservatively remove only the leading comment banner if it contains license/copyright terms.
     """
+    Remove common license headers at the top of files.
+    """
+
     text = code
 
-    # Pattern 1: Leading block comment /* ... */
     m = re.match(r"^\s*/\*(.*?)\*/\s*", text, flags=re.DOTALL)
-    if m:
-        header = m.group(1)
-        header_lower = header.lower()
-        if ("apache software foundation" in header_lower or
-            "licensed to the apache" in header_lower or
-            "license" in header_lower or
-            "copyright" in header_lower):
-            text = text[m.end():]
 
-    # Pattern 2: Leading line comments // ... until a blank line or code token
-    # Only strip if it contains license keywords
-    m2 = re.match(r"^\s*(?:(//.*?\n)+)\s*", text, flags=re.DOTALL)
-    if m2:
-        header = m2.group(0)
-        if re.search(r"apache|license|copyright", header, flags=re.IGNORECASE):
-            text = text[m2.end():]
+    if m:
+        header = m.group(1).lower()
+
+        if (
+            "apache software foundation" in header
+            or "licensed to the apache" in header
+            or "license" in header
+            or "copyright" in header
+        ):
+            text = text[m.end():]
 
     return text
 
 
+def clean_for_embedding(code: str) -> str:
+    """
+    Remove package/import boilerplate before embeddings.
+    """
+
+    lines = code.splitlines()
+
+    filtered = []
+
+    for line in lines:
+        stripped = line.strip()
+
+        if stripped.startswith("import "):
+            continue
+
+        if stripped.startswith("package "):
+            continue
+
+        filtered.append(line)
+
+    return "\n".join(filtered)
+
+
+def get_node_text(code: str, node):
+    return code[node.start_byte:node.end_byte]
+
+
+def extract_package_name(code: str):
+    m = re.search(
+        r'^\s*package\s+([\w\.]+)\s*;',
+        code,
+        flags=re.MULTILINE
+    )
+
+    return m.group(1) if m else None
+
+
+# -----------------------------
+# AST UTILITIES
+# -----------------------------
+
+def walk(node):
+    yield node
+
+    for child in node.children:
+        yield from walk(child)
+
+
+def find_method_calls(node, code):
+    """
+    Extract method invocations INSIDE a method body.
+    """
+
+    calls = []
+
+    for child in walk(node):
+
+        if child.type == "method_invocation":
+
+            name_node = child.child_by_field_name("name")
+
+            if name_node:
+                method_name = get_node_text(code, name_node)
+
+                if method_name not in JAVA_KEYWORDS:
+                    calls.append(method_name)
+
+    return list(set(calls))
+
+
+# -----------------------------
+# MAIN EXTRACTION
+# -----------------------------
+
 def extract_classes_and_methods(file_path):
-    """
-    Extracts classes, methods, and filtered method calls from a Java file.
-    
-    Returns a list of fragments, each containing:
-    - type: 'class' or 'method'
-    - symbol: class or method name
-    - code: full code of the file
-    - calls: list of called methods inside that fragment
-    """
+
     fragments = []
 
     try:
         with open(file_path, "r", encoding="utf-8", errors="ignore") as f:
             code = f.read()
+
     except Exception as e:
         print(f"Failed to read {file_path}: {e}")
         return fragments
 
-    # Strip license/comment banners to avoid storing boilerplate
     code = _strip_license_headers(code)
 
-    # Extract package (if any)
-    pkg_match = re.search(r'^\s*package\s+([\w\.]+)\s*;', code, flags=re.MULTILINE)
-    package_name = pkg_match.group(1) if pkg_match else None
+    package_name = extract_package_name(code)
 
-    # Extract classes
-    classes = re.findall(r'class\s+(\w+)', code)
-    if classes:
-        print(f"  Found classes: {classes}")
-    else:
-        print(f"  No classes found in {file_path}")
+    tree = parser.parse(bytes(code, "utf8"))
 
-    # Extract methods
-    methods = re.findall(r'(public|protected|private).*?\s+(\w+)\s*\(.*?\)\s*{', code)
-    method_names_set = set([m[1] for m in methods])
-    if methods:
-        print(f"  Found methods: {[m[1] for m in methods]}")
-    else:
-        print(f"  No methods found in {file_path}")
+    root = tree.root_node
 
-    # Extract calls
-    calls = re.findall(r'(\w+)\s*\(', code)
-    filtered_calls = [c for c in calls if c not in JAVA_KEYWORDS and c in method_names_set]
-    if filtered_calls:
-        print(f"  Found calls: {filtered_calls}")
-    else:
-        print(f"  No relevant calls found in {file_path}")
+    current_class = None
 
-    # Build FQNs helper
-    def fq_class(cls: str) -> str:
-        return f"{package_name}.{cls}" if package_name else cls
+    for node in walk(root):
 
-    def fq_method(method: str, cls: str | None) -> str:
-        if cls:
-            base = f"{fq_class(cls)}.{method}"
-        else:
-            base = method if not package_name else f"{package_name}.{method}"
-        return base
+        # ---------------------------------
+        # CLASS EXTRACTION
+        # ---------------------------------
 
-    # Precompute a naive mapping of method name -> FQN using the first class if available
-    primary_class = classes[0] if classes else None
-    method_fqn_map = {m: fq_method(m, primary_class) for m in method_names_set}
+        if node.type == "class_declaration":
 
-    # Build fragments for classes
-    for cls in classes:
-        fragments.append({
-            "type": "class",
-            "symbol": fq_class(cls),
-            "file_path": file_path,
-            "code": code,
-            "calls": filtered_calls
-        })
+            class_name_node = node.child_by_field_name("name")
 
-    # Build fragments for methods
-    for _, method in methods:
-        fragments.append({
-            "type": "method",
-            "symbol": method_fqn_map.get(method, method),
-            "file_path": file_path,
-            "code": code,
-            # Map intra-file calls to FQN when we know them; leave external names as-is
-            "calls": [method_fqn_map.get(c, c) for c in filtered_calls if c != method]
-        })
+            if not class_name_node:
+                continue
+
+            class_name = get_node_text(code, class_name_node)
+
+            current_class = class_name
+
+            fq_class = (
+                f"{package_name}.{class_name}"
+                if package_name
+                else class_name
+            )
+
+            class_code = get_node_text(code, node)
+
+            fragments.append({
+                "type": "class",
+                "symbol": fq_class,
+                "file_path": file_path,
+                "code": clean_for_embedding(class_code),
+                "calls": [],
+            })
+
+        # ---------------------------------
+        # METHOD EXTRACTION
+        # ---------------------------------
+
+        elif node.type == "method_declaration":
+
+            method_name_node = node.child_by_field_name("name")
+
+            if not method_name_node:
+                continue
+
+            method_name = get_node_text(code, method_name_node)
+
+            method_code = get_node_text(code, node)
+
+            method_calls = find_method_calls(node, code)
+
+            if current_class:
+                fq_method = (
+                    f"{package_name}.{current_class}.{method_name}"
+                    if package_name
+                    else f"{current_class}.{method_name}"
+                )
+            else:
+                fq_method = method_name
+
+            fragments.append({
+                "type": "method",
+                "symbol": fq_method,
+                "file_path": file_path,
+                "code": clean_for_embedding(method_code),
+                "calls": method_calls,
+            })
 
     return fragments

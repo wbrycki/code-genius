@@ -1,7 +1,14 @@
-# Code Genius Indexer
+## Code Genius Indexer
+
+# RAG for codebases
+
 
 ![Docker](https://img.shields.io/badge/docker-ready-blue)
 ![Python](https://img.shields.io/badge/python-3.11-brightgreen)
+![MongoDB](https://img.shields.io/badge/mongodb-ready-blue)
+![Neo4j](https://img.shields.io/badge/neo4j-ready-blue)
+
+This is an offline indexing engine that builds a semantic (embeddings) and structural (graph) representation of a codebase for later retrieval and analysis (also AI-powered ).
 
 This project scans a codebase in a specified folder, generates embeddings for code fragments, stores them in **MongoDB**, and builds a **Neo4j graph** representing method calls. These embeddings and the graph can later be used to enhance code operations, including LLM-powered analysis.
 
@@ -11,24 +18,33 @@ This project scans a codebase in a specified folder, generates embeddings for co
 
 - Extracts classes, methods, and method calls from Java code.
 - Generates embeddings for code fragments using a transformer model.
-- Stores embeddings in MongoDB.
+- Stores embeddings in MongoDB. MongoDB is used as a flexible document store for embeddings and code chunks, enabling fast iteration and schema evolution during indexing.
 - Builds a method-call graph in Neo4j.
 - Fully containerized using Docker for easy setup.
 
 ---
 
 ## Setup & Usage
+This setup was tested with macOS. Linux should work as well.
 
 ### 1. Add your code
 
+Create a folder to put a big repo in:
+```
+mkdir repo_to_index
+cd repo_to_index 
+```
 Place all the code you want to scan in the folder:
-
 ```text
 repo_to_index/
 Each file inside this folder will be processed and converted into embeddings.
 ```
+for example:
+```bash
+git clone https://github.com/apache/flink.git
+```
 
-### 2. Start services with Docker
+### 2. Start MongoDB and Neo4j services with Docker
 
 ```bash
 docker compose up --build
@@ -39,7 +55,18 @@ This will start:
 - MongoDB
 - Neo4j
 
-### 3. Inspect embeddings in MongoDB
+### 3. Run the indexer
+
+```bash
+chmod +x scripts/*.sh
+./scripts/run.sh
+```
+![indexing code chuncks](images/embedding_indexer.png)
+This process can take regarding of hardware and repo from couple of minutes to several hours. Macbook M1 8GB took about 40 minutes for flink repo.
+
+### 4. Ask questions about your code
+
+### 5. Optionally inspect embeddings in MongoDB
 
 Enter the MongoDB container:
 ```bash
@@ -59,7 +86,7 @@ Check the total number of fragments:
 db.code_memory.countDocuments()
 ```
 
-### 4. Neo4j Graph
+### 6. Neo4j Graph
 
 - Neo4j runs on ports 7474 (HTTP) and 7687 (Bolt).
 
@@ -156,6 +183,7 @@ scripts/search.sh "database connection" -k 15 --show-code
 # Include graph context (top 5): callers and callees from Neo4j
 scripts/search.sh "job submission" -k 10 --with-graph
 ```
+![vector search result](images/vector_search_result.png)
 
 ### What it does
 

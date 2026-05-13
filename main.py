@@ -1,114 +1,319 @@
 import os
 import argparse
 from tqdm import tqdm
-from parser import extract_classes_and_methods
-from mongo_utils import insert_fragment, is_file_unchanged, update_file_hash, calculate_file_hash
-from neo4j_utils import insert_method_call, check_neo4j_connection, count_methods_and_calls
 from sentence_transformers import SentenceTransformer
 
-# -------- CONFIG --------
-REPO_FOLDER = os.getenv("REPO_FOLDER", "/app/repo_to_index")
-MODEL_NAME = "all-MiniLM-L6-v2"  # lightweight, fast embedding model
+from parser import extract_classes_and_methods
 
-# -------- LOAD MODEL --------
-print("Loading embedding model...")
+from mongo_utils import (
+    insert_fragment,
+    is_file_unchanged,
+    update_file_hash,
+    calculate_file_hash,
+)
+
+from neo4j_utils import (
+    insert_method_call,
+    check_neo4j_connection,
+    count_methods_and_calls,
+)
+
+# -----------------------------------
+# CONFIG
+# -----------------------------------
+
+REPO_FOLDER = os.getenv("REPO_FOLDER", "/app/repo_to_index")
+
+MODEL_NAME = os.getenv(
+    "EMBEDDING_MODEL",
+    "all-MiniLM-L6-v2"
+)
+
+BATCH_SIZE = int(os.getenv("EMBEDDING_BATCH_SIZE", "32"))
+
+MIN_CODE_CHARS = int(os.getenv("MIN_CODE_CHARS", "80"))
+
+EMBED_METHODS_ONLY = (
+    os.getenv("EMBED_METHODS_ONLY", "true").lower()
+    not in {"0", "false", "no"}
+)
+
+# -----------------------------------
+# LOAD MODEL
+# -----------------------------------
+
+print(f"Loading embedding model: {MODEL_NAME}")
+
 model = SentenceTransformer(MODEL_NAME)
 
-def get_embedding(code_text):
-    """Generate embedding vector using sentence-transformers."""
-    return model.encode(code_text).tolist()
+# -----------------------------------
+# HELPERS
+# -----------------------------------
+
+def should_embed_fragment(fragment: dict) -> bool:
+    """
+    Decide whether a fragment should be embedded.
+    """
+
+    if EMBED_METHODS_ONLY and fragment.get("type") != "method":
+        return False
+
+    code = fragment.get("code", "")
+
+    if not code:
+        return False
+
+    if len(code.strip()) < MIN_CODE_CHARS:
+        return False
+
+    return True
+
+
+def batch_insert_embeddings(fragments: list[dict]):
+    """
+    Generate embeddings in batches and insert into MongoDB.
+    """
+
+    if not fragments:
+        return
+
+    codes = [f["code"] for f in fragments]
+
+    embeddings = model.encode(
+        codes,
+        batch_size=BATCH_SIZE,
+        show_progress_bar=False,
+    )
+
+    for frag, emb in zip(fragments, embeddings):
+
+        try:
+            frag["embedding"] = emb.tolist()
+            insert_fragment(frag)
+
+        except Exception as e:
+            print(f"Error inserting fragment {frag.get('symbol')}: {e}")
+
+
+# -----------------------------------
+# MAIN
+# -----------------------------------
 
 def main(full_rescan: bool = False):
-    print(f"Indexing starting. REPO_FOLDER={REPO_FOLDER}")
-    print(f"Mode: {'FULL RESCAN' if full_rescan else 'INCREMENTAL (MD5 cache)'}")
 
-    all_fragments = []
-    all_calls = []
+    print(f"Indexing starting. REPO_FOLDER={REPO_FOLDER}")
+
+    print(
+        f"Mode: {'FULL RESCAN' if full_rescan else 'INCREMENTAL (MD5 cache)'}"
+    )
+
     total_files = 0
     skipped_files = 0
     processed_files = 0
 
-    # Walk the repo folder
+    fragments_to_embed = []
+
+    # deduplicate graph edges
+    all_calls = set()
+
+    # -----------------------------------
+    # WALK REPOSITORY
+    # -----------------------------------
+
     for root, _, files in os.walk(REPO_FOLDER):
+
         for file in files:
-            # accept case-insensitive .java
+
             if not file.lower().endswith(".java"):
                 continue
-                
-            path = os.path.join(root, file)
-            total_files += 1
-            
-            # Skip unchanged files
-            if not full_rescan and is_file_unchanged(path):
-                skipped_files += 1
-                print(f"Skipping unchanged file: {path}")
-                continue
-                
-            print(f"Processing: {path}")
-            fragments = extract_classes_and_methods(path)
 
-            # Update hash for any processed file (even if no fragments were found)
+            path = os.path.join(root, file)
+
+            total_files += 1
+
+            # -----------------------------------
+            # SKIP UNCHANGED FILES
+            # -----------------------------------
+
+            if not full_rescan and is_file_unchanged(path):
+
+                skipped_files += 1
+
+                print(f"Skipping unchanged file: {path}")
+
+                continue
+
+            print(f"Processing: {path}")
+
+            # -----------------------------------
+            # PARSE FILE
+            # -----------------------------------
+
+            try:
+                fragments = extract_classes_and_methods(path)
+
+            except Exception as e:
+                print(f"Failed parsing {path}: {e}")
+                continue
+
+            processed_files += 1
+
+            # -----------------------------------
+            # UPDATE FILE HASH
+            # -----------------------------------
+
             try:
                 file_hash = calculate_file_hash(path)
                 update_file_hash(path, file_hash)
+
             except Exception as e:
-                print(f"Warning: failed to update hash for {path}: {e}")
-            processed_files += 1
-                
-            all_fragments.extend(fragments)
+                print(f"Warning: failed updating hash for {path}: {e}")
+
+            # -----------------------------------
+            # PROCESS FRAGMENTS
+            # -----------------------------------
+
             for frag in fragments:
-                if frag.get("type") == "method":  # only method -> method edges
+
+                # collect graph relationships
+                if frag.get("type") == "method":
+
+                    caller = frag.get("symbol")
+
                     for callee in frag.get("calls", []):
-                        all_calls.append({"caller": frag["symbol"], "callee": callee})
 
-    # Generate embeddings and insert into Mongo
-    for frag in tqdm(all_fragments):
-        try:
-            emb = get_embedding(frag["code"])
-            frag["embedding"] = emb
-            insert_fragment(frag)
-        except Exception as e:
-            print(f"Error processing {frag['symbol']}: {e}")
+                        all_calls.add((caller, callee))
 
-    # Insert method calls into Neo4j (optional)
-    neo4j_enabled = os.getenv("NEO4J_ENABLED", "true").lower() not in {"0", "false", "no"}
+                # collect embeddable fragments
+                if should_embed_fragment(frag):
+
+                    fragments_to_embed.append(frag)
+
+    # -----------------------------------
+    # EMBEDDINGS
+    # -----------------------------------
+
+    print(
+        f"\nGenerating embeddings for "
+        f"{len(fragments_to_embed)} fragments..."
+    )
+
+    batch_insert_embeddings(fragments_to_embed)
+
+    # -----------------------------------
+    # NEO4J
+    # -----------------------------------
+
+    neo4j_enabled = (
+        os.getenv("NEO4J_ENABLED", "true").lower()
+        not in {"0", "false", "no"}
+    )
+
     if not neo4j_enabled:
-        print("Skipping Neo4j insertion (NEO4J_ENABLED=false)")
+
+        print("Skipping Neo4j insertion (disabled).")
+
     else:
+
         if not check_neo4j_connection():
-            print("Skipping Neo4j insertion (connection unavailable or authentication failed).")
+
+            print(
+                "Skipping Neo4j insertion "
+                "(connection unavailable)."
+            )
+
         else:
+
+            print(
+                f"\nInserting {len(all_calls)} "
+                f"method-call relationships into Neo4j..."
+            )
+
             errors = 0
-            for call in tqdm(all_calls, desc="Neo4j method calls"):
+
+            for caller, callee in tqdm(
+                all_calls,
+                desc="Neo4j method calls"
+            ):
+
                 try:
-                    insert_method_call(call["caller"], call["callee"])
+
+                    insert_method_call(caller, callee)
+
                 except Exception as e:
+
                     errors += 1
-                    print(f"Error inserting call {call}: {e}")
-                    # If we get repeated auth/rate-limit errors, stop spamming
+
+                    print(
+                        f"Error inserting relationship "
+                        f"{caller} -> {callee}: {e}"
+                    )
+
                     if errors >= 5:
-                        print("Too many Neo4j errors; stopping further inserts. Check NEO4J_* credentials and server status.")
+
+                        print(
+                            "Too many Neo4j errors. "
+                            "Stopping insertion."
+                        )
+
                         break
 
-    print("\nIndexing summary:")
-    print(f"  Files discovered (.java): {total_files}")
+    # -----------------------------------
+    # SUMMARY
+    # -----------------------------------
+
+    print("\n=== INDEXING SUMMARY ===")
+
+    print(f"Files discovered (.java): {total_files}")
+
     if total_files == 0:
-        print("  Hint: Put your Java files under the folder above or set REPO_FOLDER to the correct path.")
+
+        print(
+            "Hint: Put Java files under REPO_FOLDER "
+            "or update the path."
+        )
+
     if not full_rescan:
-        print(f"  Skipped (unchanged):      {skipped_files}")
-    print(f"  Processed:                {processed_files}")
 
-    # Neo4j graph summary (if enabled and reachable)
+        print(f"Skipped unchanged:       {skipped_files}")
+
+    print(f"Processed files:         {processed_files}")
+
+    print(f"Embedded fragments:      {len(fragments_to_embed)}")
+
+    print(f"Unique graph edges:      {len(all_calls)}")
+
+    # -----------------------------------
+    # GRAPH SUMMARY
+    # -----------------------------------
+
     if neo4j_enabled and check_neo4j_connection():
-        n, r = count_methods_and_calls()
-        if n is not None:
-            print(f"  Neo4j Methods nodes:      {n}")
-            print(f"  Neo4j CALLS relationships:{r}")
 
+        n, r = count_methods_and_calls()
+
+        if n is not None:
+
+            print(f"Neo4j method nodes:     {n}")
+
+            print(f"Neo4j CALLS edges:      {r}")
+
+
+# -----------------------------------
+# ENTRYPOINT
+# -----------------------------------
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Code Genius Indexer")
-    parser.add_argument("--full-rescan", action="store_true", help="Re-scan all files regardless of MD5 cache")
+
+    parser = argparse.ArgumentParser(
+        description="Code Genius Indexer"
+    )
+
+    parser.add_argument(
+        "--full-rescan",
+        action="store_true",
+        help="Re-index all files regardless of MD5 cache",
+    )
+
     args = parser.parse_args()
 
     main(full_rescan=args.full_rescan)

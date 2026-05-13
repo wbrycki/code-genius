@@ -2,4 +2,4 @@
 .env
 __pycache__/
 *.py[cod]
-report.html
+report.htmlrepo_to_index/
