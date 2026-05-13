@@ -8,7 +8,6 @@ from pymongo import MongoClient
 import numpy as np
 from sentence_transformers import SentenceTransformer
 
-# Ensure project root is on sys.path so we can import neo4j_utils
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if BASE_DIR not in sys.path:
     sys.path.insert(0, BASE_DIR)
@@ -16,9 +15,10 @@ if BASE_DIR not in sys.path:
 try:
     from neo4j_utils import check_neo4j_connection, get_callers, get_callees
 except Exception:
-    check_neo4j_connection = None  # type: ignore
-    get_callers = None  # type: ignore
-    get_callees = None  # type: ignore
+    check_neo4j_connection = None
+    get_callers = None
+    get_callees = None
+
 
 MODEL_NAME = os.getenv("MODEL_NAME", "all-MiniLM-L6-v2")
 MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
@@ -26,15 +26,19 @@ DB_NAME = os.getenv("DB_NAME", "code_index")
 COLLECTION_NAME = os.getenv("COLLECTION_NAME", "code_memory")
 
 
+# ----------------------------
+# CORE
+# ----------------------------
+
 def cosine_sim(a: np.ndarray, b: np.ndarray) -> float:
-    denom = (np.linalg.norm(a) * np.linalg.norm(b))
+    denom = np.linalg.norm(a) * np.linalg.norm(b)
     if denom == 0:
         return 0.0
     return float(np.dot(a, b) / denom)
 
 
 def load_embeddings(col) -> List[Dict[str, Any]]:
-    cursor = col.find({}, projection={
+    cursor = col.find({}, {
         "_id": 0,
         "symbol": 1,
         "type": 1,
@@ -42,10 +46,11 @@ def load_embeddings(col) -> List[Dict[str, Any]]:
         "embedding": 1,
         "code": 1,
     })
+
     results = []
     for doc in cursor:
         emb = doc.get("embedding")
-        if isinstance(emb, list) and len(emb) > 0:
+        if isinstance(emb, list) and emb:
             results.append({
                 "symbol": doc.get("symbol"),
                 "type": doc.get("type"),
@@ -56,77 +61,110 @@ def load_embeddings(col) -> List[Dict[str, Any]]:
     return results
 
 
+# ----------------------------
+# FORMATTER
+# ----------------------------
+
+def format_results(top, args):
+    print("\n=== RESULTS ===")
+    print(f"Top {args.top_k} matches\n")
+
+    print("SCORE    TYPE     SYMBOL                              FILE")
+    print("-" * 90)
+
+    for idx, r in enumerate(top, 1):
+        print(
+            f"{r['score']:.4f}  "
+            f"{r['type']:<8} "
+            f"{str(r['symbol'])[:35]:<35} "
+            f"{str(r['file_path'])[:30]}"
+        )
+
+        # code preview
+        if args.show_code:
+            code = r.get("code")
+            if code:
+                print("\n    ── snippet ──")
+                for line in code.splitlines()[:6]:
+                    print(f"    {line}")
+                print()
+
+        # graph context
+        if args.with_graph and idx <= 5:
+            print_graph_context(r)
+
+
+def print_graph_context(r):
+    if not (check_neo4j_connection and get_callers and get_callees):
+        return
+
+    if not check_neo4j_connection():
+        return
+
+    name = str(r.get("symbol") or "")
+
+    try:
+        callers = get_callers(name, limit=5) or []
+        callees = get_callees(name, limit=5) or []
+
+        if callers or callees:
+            print("    ── graph ──")
+
+            if callers:
+                print("    <- callers:")
+                for c in callers:
+                    print(f"       {c}")
+
+            if callees:
+                print("    -> calls:")
+                for c in callees:
+                    print(f"       {c}")
+
+            print()
+
+    except Exception:
+        pass
+
+
+# ----------------------------
+# MAIN
+# ----------------------------
+
 def main():
-    parser = argparse.ArgumentParser(description="Search similar code fragments using embeddings")
-    parser.add_argument("query", type=str, help="Natural language or code-like query")
-    parser.add_argument("-k", "--top_k", type=int, default=10, help="How many results to return")
-    parser.add_argument("--show-code", action="store_true", help="Show a prefix of the code (if available)")
-    parser.add_argument("--with-graph", action="store_true", help="Show callers/callees from Neo4j for top 5 matches")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("query")
+    parser.add_argument("-k", "--top_k", type=int, default=10)
+    parser.add_argument("--show-code", action="store_true")
+    parser.add_argument("--with-graph", action="store_true")
     args = parser.parse_args()
 
-    print("Loading embedding model...", file=sys.stderr)
+    print("Loading model...", file=sys.stderr)
     model = SentenceTransformer(MODEL_NAME)
-    q_emb = model.encode(args.query)
-    q_emb = np.array(q_emb, dtype=np.float32)
+
+    q_emb = np.array(model.encode(args.query), dtype=np.float32)
 
     client = MongoClient(MONGO_URI)
     col = client[DB_NAME][COLLECTION_NAME]
 
-    print("Fetching embeddings from MongoDB...", file=sys.stderr)
+    print("Loading embeddings...", file=sys.stderr)
     items = load_embeddings(col)
+
     if not items:
-        print("No embeddings found. Have you run the indexer?", file=sys.stderr)
+        print("No embeddings found")
         sys.exit(1)
 
-    print("Computing similarities...", file=sys.stderr)
     scored = []
     for it in items:
-        score = cosine_sim(q_emb, it["embedding"])
         scored.append({
-            "score": score,
+            "score": cosine_sim(q_emb, it["embedding"]),
             **{k: v for k, v in it.items() if k != "embedding"},
         })
 
     scored.sort(key=lambda x: x["score"], reverse=True)
-    top = scored[: args.top_k]
+    top = scored[:args.top_k]
 
-    # Pretty print
-    print("RESULTS (top {}):".format(args.top_k))
-    print("SCORE    TYPE     SYMBOL                                                   FILE")
-    print("-" * 110)
-    for idx, r in enumerate(top, 1):
-        print(f"{r['score']:.4f}  {r['type']:<8} {str(r['symbol'])[:55]:<55} {str(r['file_path'])[:40]}")
-        if args.show_code:
-            code = r.get('code')
-            if code:
-                snippet = code.strip().splitlines()[:8]
-                for line in snippet:
-                    print(f"    {line}")
-                if len(code.strip().splitlines()) > 8:
-                    print("    ...")
-            else:
-                print("    [no code stored for this fragment]")
+    format_results(top, args)
 
-        # Graph context for top 5 matches
-        if args.with_graph and idx <= 5 and get_callers and get_callees:
-            neo4j_enabled = os.getenv("NEO4J_ENABLED", "true").lower() not in {"0", "false", "no"}
-            if neo4j_enabled and check_neo4j_connection and check_neo4j_connection():
-                name = str(r.get('symbol') or '')
-                try:
-                    callees = get_callees(name, limit=10) or []
-                    callers = get_callers(name, limit=10) or []
-                    if callees or callers:
-                        print("    Graph context:")
-                        if callers:
-                            print("      <- callers:")
-                            for c in callers[:10]:
-                                print(f"         - {c}")
-                        if callees:
-                            print("      -> calls:")
-                            for c in callees[:10]:
-                                print(f"         - {c}")
-                except Exception as e:
-                    print(f"    [graph lookup error: {e}]")
 
 if __name__ == "__main__":
     main()

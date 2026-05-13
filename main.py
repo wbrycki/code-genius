@@ -5,6 +5,8 @@ from sentence_transformers import SentenceTransformer
 
 from parser import extract_classes_and_methods
 
+from pretty_formatter import PrettySearchFormatter
+
 from mongo_utils import (
     insert_fragment,
     is_file_unchanged,

@@ -1,6 +1,6 @@
-## Code Genius Indexer
+# Code Genius Indexer
 
-# RAG for codebases
+## RAG for codebases
 
 
 ![Docker](https://img.shields.io/badge/docker-ready-blue)
