@@ -5,12 +5,12 @@
 
 ![Docker](https://img.shields.io/badge/docker-ready-blue)
 ![Python](https://img.shields.io/badge/python-3.11-brightgreen)
-![MongoDB](https://img.shields.io/badge/mongodb-ready-blue)
+![Qdrant](https://img.shields.io/badge/qdrant-ready-blue)
 ![Neo4j](https://img.shields.io/badge/neo4j-ready-blue)
 
 This is an offline indexing engine that builds a semantic (embeddings) and structural (graph) representation of a codebase for later retrieval and analysis (also AI-powered ).
 
-This project scans a codebase in a specified folder, generates embeddings for code fragments, stores them in **MongoDB**, and builds a **Neo4j graph** representing method calls. These embeddings and the graph can later be used to enhance code operations, including LLM-powered analysis.
+This project scans a codebase in a specified folder, generates embeddings for code fragments, stores them in **Qdrant**, and builds a **Neo4j graph** representing method calls. These embeddings and the graph can later be used to enhance code operations, including LLM-powered analysis.
 
 ---
 
@@ -18,7 +18,7 @@ This project scans a codebase in a specified folder, generates embeddings for co
 
 - Extracts classes, methods, and method calls from Java code.
 - Generates embeddings for code fragments using a transformer model.
-- Stores embeddings in MongoDB. MongoDB is used as a flexible document store for embeddings and code chunks, enabling fast iteration and schema evolution during indexing.
+- Stores embeddings in Qdrant for vector search, with code metadata kept in point payloads.
 - Builds a method-call graph in Neo4j.
 - Fully containerized using Docker for easy setup.
 
@@ -44,7 +44,7 @@ for example:
 git clone https://github.com/apache/flink.git
 ```
 
-### 2. Start MongoDB and Neo4j services with Docker
+### 2. Start Qdrant and Neo4j services with Docker
 
 ```bash
 docker compose up --build
@@ -52,7 +52,7 @@ docker compose up --build
 
 This will start:
 
-- MongoDB
+- Qdrant
 - Neo4j
 
 ### 3. Run the indexer
@@ -66,24 +66,16 @@ This process can take regarding of hardware and repo from couple of minutes to s
 
 ### 4. Ask questions about your code
 
-### 5. Optionally inspect embeddings in MongoDB
+### 5. Optionally inspect embeddings in Qdrant
 
-Enter the MongoDB container:
+Open the Qdrant dashboard:
 ```bash
-docker exec -it mongo mongosh
+open http://localhost:6333/dashboard
 ```
 
-Switch to the code_index database:
+Or print a small terminal preview:
 ```bash
-use code_index
-```
-View the embeddings:
-```bash
-db.code_memory.find().pretty()
-```
-Check the total number of fragments:
-```bash
-db.code_memory.countDocuments()
+python tools/qdrant_summary.py
 ```
 
 ### 6. Neo4j Graph
@@ -114,8 +106,8 @@ You can run the indexer locally without affecting your system Python by using th
 
 - bash, curl
 - Python 3.11+ installed (uv will manage the virtualenv)
-- MongoDB and Neo4j running locally or reachable via network
-  - Defaults: `MONGO_URI=mongodb://localhost:27017`, `NEO4J_URI=bolt://localhost:7687`, `NEO4J_USER=neo4j`, `NEO4J_PASSWORD=test`
+- Qdrant and Neo4j running locally or reachable via network
+  - Defaults: `QDRANT_URL=http://localhost:6333`, `NEO4J_URI=bolt://localhost:7687`, `NEO4J_USER=neo4j`, `NEO4J_PASSWORD=test`
 
 ### 1) Make scripts executable (first time only)
 
@@ -140,8 +132,8 @@ cat > .env << 'EOF'
 # Where your source code to index lives (absolute path or project-relative)
 REPO_FOLDER=./repo_to_index
 
-# MongoDB connection
-MONGO_URI=mongodb://localhost:27017
+# Qdrant connection
+QDRANT_URL=http://localhost:6333
 
 # Neo4j connection
 NEO4J_URI=bolt://localhost:7687
@@ -162,14 +154,14 @@ scripts/run.sh --full-rescan
 Notes:
 - The script will source `.env` if present and fall back to reasonable defaults.
 - To change the code folder without `.env`, export `REPO_FOLDER` before running: `export REPO_FOLDER=/abs/path/to/repo`.
-- The scanner now skips unchanged files using an MD5 hash cache stored in MongoDB collection `file_hashes`.
-- The indexer strips leading license headers (e.g., Apache ASF banners) from code before storing it in MongoDB.
+- The scanner skips unchanged files using an MD5 hash cache stored in the Qdrant `file_hashes` collection.
+- The indexer strips leading license headers (e.g., Apache ASF banners) from code before storing it in Qdrant.
 
 ---
 
 ## Semantic search (find interesting code by meaning)
 
-After you have embeddings in MongoDB, you can search for semantically similar fragments using a natural language or code-like query.
+After you have embeddings in Qdrant, you can search for semantically similar fragments using a natural language or code-like query.
 
 ### Quick start
 
@@ -188,8 +180,7 @@ scripts/search.sh "job submission" -k 10 --with-graph
 ### What it does
 
 - Encodes your query using the same embedding model (`all-MiniLM-L6-v2`).
-- Fetches stored fragment embeddings from MongoDB (`code_index.code_memory`).
-- Computes cosine similarity and prints a ranked list.
+- Queries Qdrant's `code_memory` collection and prints a ranked list.
 - If `--with-graph` is provided and Neo4j is reachable, shows for the top 5 results:
   - Callers: methods that call the matched method
   - Calls: methods called by the matched method
@@ -214,7 +205,7 @@ Notes:
 
 ## Resetting data (start from scratch)
 
-Use these commands to clear stored data from MongoDB and Neo4j and re-index from a clean slate.
+Use these commands to clear stored data from Qdrant and Neo4j and re-index from a clean slate.
 
 ### One-shot reset (recommended)
 
@@ -229,8 +220,8 @@ scripts/run.sh --full-rescan
 ### Manual reset
 
 ```bash
-# Clear MongoDB collections (code_index.code_memory and code_index.file_hashes)
-python tools/clear_mongo.py
+# Clear Qdrant collections (code_memory and file_hashes)
+python tools/clear_qdrant.py
 
 # Clear Neo4j graph (all nodes and relationships)
 python tools/clear_neo4j.py
@@ -240,5 +231,5 @@ scripts/run.sh --full-rescan
 ```
 
 Notes:
-- The reset scripts use the same environment variables as the indexer. Ensure `.env` exports `MONGO_URI`, `NEO4J_URI`, `NEO4J_USER`, and `NEO4J_PASSWORD` (and optionally `DB_NAME`).
-- After a reset, the end-of-run summary will show the updated MongoDB totals and Neo4j graph counts.
+- The reset scripts use the same environment variables as the indexer. Ensure `.env` exports `QDRANT_URL`, `NEO4J_URI`, `NEO4J_USER`, and `NEO4J_PASSWORD`.
+- After a reset, the end-of-run summary will show the updated Qdrant totals and Neo4j graph counts.

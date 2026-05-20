@@ -4,8 +4,7 @@ import os
 import sys
 from typing import List, Dict, Any
 
-from pymongo import MongoClient
-import numpy as np
+from qdrant_client import QdrantClient
 from sentence_transformers import SentenceTransformer
 
 # Ensure project root is on sys.path so we can import neo4j_utils
@@ -21,38 +20,30 @@ except Exception:
     get_callees = None  # type: ignore
 
 MODEL_NAME = os.getenv("MODEL_NAME", "all-MiniLM-L6-v2")
-MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017")
-DB_NAME = os.getenv("DB_NAME", "code_index")
+QDRANT_URL = os.getenv("QDRANT_URL", "http://localhost:6333")
+QDRANT_API_KEY = os.getenv("QDRANT_API_KEY", None)
 COLLECTION_NAME = os.getenv("COLLECTION_NAME", "code_memory")
 
 
-def cosine_sim(a: np.ndarray, b: np.ndarray) -> float:
-    denom = (np.linalg.norm(a) * np.linalg.norm(b))
-    if denom == 0:
-        return 0.0
-    return float(np.dot(a, b) / denom)
+def search_qdrant(query_embedding: List[float], top_k: int) -> List[Dict[str, Any]]:
+    client = QdrantClient(url=QDRANT_URL, api_key=QDRANT_API_KEY)
+    response = client.query_points(
+        collection_name=COLLECTION_NAME,
+        query=query_embedding,
+        limit=top_k,
+        with_payload=True,
+    )
 
-
-def load_embeddings(col) -> List[Dict[str, Any]]:
-    cursor = col.find({}, projection={
-        "_id": 0,
-        "symbol": 1,
-        "type": 1,
-        "file_path": 1,
-        "embedding": 1,
-        "code": 1,
-    })
     results = []
-    for doc in cursor:
-        emb = doc.get("embedding")
-        if isinstance(emb, list) and len(emb) > 0:
-            results.append({
-                "symbol": doc.get("symbol"),
-                "type": doc.get("type"),
-                "file_path": doc.get("file_path", "-"),
-                "embedding": np.array(emb, dtype=np.float32),
-                "code": doc.get("code") or "",
-            })
+    for point in response.points:
+        payload = point.payload or {}
+        results.append({
+            "score": point.score,
+            "symbol": payload.get("symbol"),
+            "type": payload.get("type"),
+            "file_path": payload.get("file_path", "-"),
+            "code": payload.get("code") or "",
+        })
     return results
 
 
@@ -139,29 +130,13 @@ def main():
 
     print("Loading embedding model...", file=sys.stderr)
     model = SentenceTransformer(MODEL_NAME)
-    q_emb = model.encode(args.query)
-    q_emb = np.array(q_emb, dtype=np.float32)
+    q_emb = model.encode(args.query).tolist()
 
-    client = MongoClient(MONGO_URI)
-    col = client[DB_NAME][COLLECTION_NAME]
-
-    print("Fetching embeddings from MongoDB...", file=sys.stderr)
-    items = load_embeddings(col)
-    if not items:
-        print("No embeddings found. Have you run the indexer?", file=sys.stderr)
+    print("Searching Qdrant...", file=sys.stderr)
+    top = search_qdrant(q_emb, args.top_k)
+    if not top:
+        print("No Qdrant matches found. Have you run the indexer?", file=sys.stderr)
         sys.exit(1)
-
-    print("Computing similarities...", file=sys.stderr)
-    scored = []
-    for it in items:
-        score = cosine_sim(q_emb, it["embedding"])
-        scored.append({
-            "score": score,
-            **{k: v for k, v in it.items() if k != "embedding"},
-        })
-
-    scored.sort(key=lambda x: x["score"], reverse=True)
-    top = scored[: args.top_k]
 
     # Optionally add Mermaid graphs
     rows = []

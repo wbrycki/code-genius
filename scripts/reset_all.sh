@@ -16,8 +16,8 @@ if [ -f "$REPO_ROOT/.env" ]; then
   set +a
 fi
 
-# Purge MongoDB
-python "$REPO_ROOT/tools/clear_mongo.py"
+# Purge Qdrant
+python "$REPO_ROOT/tools/clear_qdrant.py"
 
 # Purge Neo4j
 python "$REPO_ROOT/tools/clear_neo4j.py"

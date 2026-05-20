@@ -1,13 +1,14 @@
 version: "3.9"
 
 services:
-  mongo:
-    image: mongo:6.0
-    container_name: mongo
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: qdrant
     ports:
-      - "27017:27017"
+      - "6333:6333"
+      - "6334:6334"
     volumes:
-      - mongo_data:/data/db
+      - qdrant_data:/qdrant/storage
 
   neo4j:
     image: neo4j:5
@@ -19,4 +20,4 @@ services:
       - NEO4J_AUTH=neo4j/supersecret
 
 volumes:
-  mongo_data:
+  qdrant_data:

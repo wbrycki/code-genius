@@ -23,7 +23,7 @@ case "$REPO_FOLDER" in
   *) REPO_FOLDER="$REPO_ROOT/$REPO_FOLDER" ;;
 esac
 export REPO_FOLDER
-export MONGO_URI="${MONGO_URI:-mongodb://localhost:27017}"
+export QDRANT_URL="${QDRANT_URL:-http://localhost:6333}"
 export NEO4J_URI="${NEO4J_URI:-bolt://localhost:7687}"
 export NEO4J_USER="${NEO4J_USER:-neo4j}"
 export NEO4J_PASSWORD="${NEO4J_PASSWORD:-test}"
@@ -33,5 +33,5 @@ source "$REPO_ROOT/.venv/bin/activate"
 echo "Using REPO_FOLDER=$REPO_FOLDER"
 python "$REPO_ROOT/main.py" "$@"
 
-echo "\n=== MongoDB Summary (code_index.code_memory) ==="
-python "$REPO_ROOT/tools/mongo_summary.py"
+printf "\n=== Qdrant Summary (%s) ===\n" "${COLLECTION_NAME:-code_memory}"
+python "$REPO_ROOT/tools/qdrant_summary.py"

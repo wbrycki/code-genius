@@ -1,9 +1,10 @@
 requests
 tqdm
-pymongo
 neo4j
 sentence-transformers
 torch
 numpy
 tree-sitter 
 tree-sitter-java
+qdrant-client
+Pygments

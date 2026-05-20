@@ -5,10 +5,9 @@ from sentence_transformers import SentenceTransformer
 
 from parser import extract_classes_and_methods
 
-from pretty_formatter import PrettySearchFormatter
-
-from mongo_utils import (
-    insert_fragment,
+from qdrant_utils import (
+    init_collections,
+    batch_insert_fragments,
     is_file_unchanged,
     update_file_hash,
     calculate_file_hash,
@@ -32,6 +31,10 @@ MODEL_NAME = os.getenv(
 )
 
 BATCH_SIZE = int(os.getenv("EMBEDDING_BATCH_SIZE", "32"))
+
+EMBEDDING_INSERT_CHUNK_SIZE = int(
+    os.getenv("EMBEDDING_INSERT_CHUNK_SIZE", "512")
+)
 
 MIN_CODE_CHARS = int(os.getenv("MIN_CODE_CHARS", "80"))
 
@@ -73,28 +76,35 @@ def should_embed_fragment(fragment: dict) -> bool:
 
 def batch_insert_embeddings(fragments: list[dict]):
     """
-    Generate embeddings in batches and insert into MongoDB.
+    Generate embeddings in batches and insert into Qdrant.
     """
 
     if not fragments:
         return
 
-    codes = [f["code"] for f in fragments]
+    inserted = 0
 
-    embeddings = model.encode(
-        codes,
-        batch_size=BATCH_SIZE,
-        show_progress_bar=False,
-    )
+    for start in range(0, len(fragments), EMBEDDING_INSERT_CHUNK_SIZE):
+        chunk = fragments[start:start + EMBEDDING_INSERT_CHUNK_SIZE]
+        codes = [f["code"] for f in chunk]
 
-    for frag, emb in zip(fragments, embeddings):
+        embeddings = model.encode(
+            codes,
+            batch_size=BATCH_SIZE,
+            show_progress_bar=False,
+        )
 
-        try:
-            frag["embedding"] = emb.tolist()
-            insert_fragment(frag)
+        for frag, emb in zip(chunk, embeddings):
 
-        except Exception as e:
-            print(f"Error inserting fragment {frag.get('symbol')}: {e}")
+            try:
+                frag["embedding"] = emb.tolist()
+
+            except Exception as e:
+                print(f"Error processing fragment {frag.get('symbol')}: {e}")
+
+        batch_insert_fragments(chunk)
+        inserted += len(chunk)
+        print(f"Inserted embeddings into Qdrant: {inserted}/{len(fragments)}")
 
 
 # -----------------------------------
@@ -102,6 +112,9 @@ def batch_insert_embeddings(fragments: list[dict]):
 # -----------------------------------
 
 def main(full_rescan: bool = False):
+
+    # Initialize Qdrant collections
+    init_collections()
 
     print(f"Indexing starting. REPO_FOLDER={REPO_FOLDER}")
 
